@@ -1,0 +1,2 @@
+INSERT INTO [MBTI].[MBTI].[TBL_Iteration]
+SELECT SYSDATETIME(),2,'MBTI','Similarity'
