@@ -1,7 +1,7 @@
 USE [MBTI]
 GO
 
-/****** Object:  Table [MBTI].[TBL_Similarity_HOFF]    Script Date: 8/21/2020 9:35:28 AM ******/
+/****** Object:  Table [MBTI].[TBL_Similarity_HOFF]    Script Date: 8/21/2020 1:23:58 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -14,12 +14,15 @@ CREATE TABLE [MBTI].[TBL_Similarity_HOFF](
 	[FK_ID_Iteration_HOFF] [int] NULL,
 	[FK_ID_Iteration] [int] NULL,
 	[FK_ID_Session] [int] NULL,
+	[Country] [nvarchar](100) NULL,
 	[PowerDistance] [int] NULL,
 	[Individualism] [int] NULL,
 	[Masculinity] [int] NULL,
 	[UncertaintyAvoidance] [int] NULL,
 	[Indulgence] [int] NULL,
 	[LongTermOrientation] [int] NULL,
+	[DeviationPoints] [float] NULL,
+	[Closeness] [float] NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[PK_ID_Similarity_HOFF] ASC
