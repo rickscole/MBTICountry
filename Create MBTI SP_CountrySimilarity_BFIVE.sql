@@ -1,51 +1,72 @@
 USE [MBTI]
 GO
 
-/****** Object:  View [MBTI].[VW_Similarity_BFIVE]    Script Date: 8/28/2020 12:54:41 PM ******/
+/****** Object:  StoredProcedure [MBTI].[SP_CountrySimilarity_BFIVE]    Script Date: 9/5/2020 11:22:28 PM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
+-- =============================================
+-- Author:		rsc
+-- Create date: 2020-08-21_1327
+-- Description:	get user similarity scores by country for HOFF
+-- =============================================
+CREATE PROCEDURE [MBTI].[SP_CountrySimilarity_BFIVE]
+@ID_Session INT,
+@ID_Iteration INT,
+@IterationType NVARCHAR(100), 
+@User_Extraversion INT,
+@User_Agreeableness INT,
+@User_Conscientiousness INT,
+@User_Neuroticism INT,
+@User_Openness INT
+AS
+BEGIN
 
+INSERT INTO [MBTI].[MBTI].[TBL_Iteration_BFIVE] 
+SELECT SYSDATETIME(),@ID_Iteration,@ID_Session,@User_Extraversion,@User_Agreeableness,@User_Conscientiousness,@User_Neuroticism,@User_Openness
 
+DECLARE @ID_Iteration_BFIVE INT = (SELECT MAX([PK_ID_Iteration_BFIVE]) FROM [MBTI].[MBTI].[TBL_Iteration_BFIVE])
 
-
-
-
-/****** Object:  View [MBTI].[VW_Similarity_MBTI]    Script Date: 8/21/2020 1:39:49 PM ******/
---SET ANSI_NULLS ON
---GO
-
---SET QUOTED_IDENTIFIER ON
---GO
-
-
-
-
-CREATE VIEW [MBTI].[VW_Similarity_BFIVE] AS
+;WITH tCountrySimilarities AS
+(
+	SELECT 
+	[country]
+	, [extraversion]
+	, [agreeableness]
+	, [conscientiousness]
+	, [neuroticism]
+	, [openness]
+	, ABS(CAST(@User_Extraversion AS FLOAT) - [extraversion]) + 
+	ABS(CAST(@User_Agreeableness AS FLOAT) - [agreeableness]) +
+	ABS(CAST(@User_Conscientiousness AS FLOAT) - [conscientiousness]) +
+	ABS(CAST(@User_Neuroticism AS FLOAT) - [neuroticism]) +
+	ABS(CAST(@User_Openness AS FLOAT) - [openness])
+	AS 'DeviationPoints'
+	FROM [MBTI].[MBTI].[TBL_CountryValues_BFIVE] tBfive
+),
+tMaxAndMinDP AS
+(
+	SELECT t1.[DeviationPoints_MAX], t2.[DeviationPoints_MIN] FROM
+	(SELECT MAX([DeviationPoints]) AS [DeviationPoints_MAX] FROM tCountrySimilarities) t1,
+	(SELECT MIN([DeviationPoints]) AS [DeviationPoints_MIN] FROM tCountrySimilarities) t2
+)
+INSERT INTO [MBTI].[MBTI].[TBL_Similarity_BFIVE]
 SELECT 
-tSim.*,
-tCountry.[SetCountryName] AS [Country_Adjusted]
---, tIter.[Introversion] AS [Introversion_User]
---, tIter.[Intuition] AS [Intuition_User]
---, tIter.[Thinking] AS [Thinking_User]
---, tIter.[Prospecting] AS [Prospecting_User]
---, tIter.[Assertiveness] AS [Assertiveness_User]
---, tIter.[Introversion] AS [Introversion_Difference]
---, tIter.[Intuition] AS [Intuition_User]
---, tIter.[Thinking] AS [Thinking_User]
---, tIter.[Prospecting] AS [Prospecting_User]
---, tIter.[Assertiveness] AS [Assertiveness_User]
-FROM [MBTI].[MBTI].[TBL_Similarity_BFIVE] tSim
-INNER JOIN [MBTI].[MBTI].[TBL_CountryTranslations] tCountry
-ON tSim.[Country] = tCountry.[GetCountryName]
---INNER JOIN  [MBTI].[MBTI].[TBL_Iteration_MBTI] tIter
---ON tSim.[FK_ID_Iteration] = tIter.[PK_ID_Iteration_CountrySimilarity_MBTI]
-WHERE tSim.[FK_ID_Iteration] = (SELECT MAX([FK_ID_Iteration]) FROM [MBTI].[MBTI].[TBL_Similarity_BFIVE])
+SYSDATETIME()
+, @ID_Iteration_BFIVE
+, @ID_Iteration
+, @ID_Session
+, tCountrySimilarities.*
+, (1 - (tCountrySimilarities.[DeviationPoints] - tMaxAndMinDP.[DeviationPoints_MIN]) / (tMaxAndMinDP.[DeviationPoints_MAX] - tMaxAndMinDP.[DeviationPoints_MIN])) * 100 AS Closeness
+FROM tCountrySimilarities,
+tMaxAndMinDP
+ORDER BY tCountrySimilarities.[DeviationPoints] ASC
 
---GO
+END
+
 
 
 GO
