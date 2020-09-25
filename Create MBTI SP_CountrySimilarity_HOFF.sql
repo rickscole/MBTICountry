@@ -1,7 +1,7 @@
 USE [MBTI]
 GO
 
-/****** Object:  StoredProcedure [MBTI].[SP_CountrySimilarity_HOFF]    Script Date: 9/5/2020 11:17:49 PM ******/
+/****** Object:  StoredProcedure [MBTI].[SP_CountrySimilarity_HOFF]    Script Date: 9/25/2020 2:28:05 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -22,7 +22,14 @@ CREATE PROCEDURE [MBTI].[SP_CountrySimilarity_HOFF]
 @User_mas INT,
 @User_uai INT,
 @User_ivr INT,
-@User_ltowvs INT
+@User_ltowvs INT,
+@Provide_pdi INT,
+@Provide_idv INT,
+@Provide_mas INT,
+@Provide_uai INT,
+@Provide_ivr INT,
+@Provide_ltowvs INT
+
 AS
 BEGIN
 
@@ -41,12 +48,13 @@ DECLARE @ID_Iteration_HOFF INT = (SELECT MAX([PK_ID_Iteration_HOFF]) FROM [MBTI]
 	, [uai]
 	, [ivr]
 	, [ltowvs]
-	, ABS(CAST(@User_pdi AS FLOAT) - [pdi]) + 
-	ABS(CAST(@User_idv AS FLOAT) - [idv]) +
-	ABS(CAST(@User_mas AS FLOAT) - [mas]) +
-	ABS(CAST(@User_uai AS FLOAT) - [uai]) +
-	ABS(CAST(@User_ivr AS FLOAT) - [ivr]) +
-	ABS(CAST(@User_ltowvs AS FLOAT) - [ltowvs])
+	, 
+	ABS(CAST(ISNULL(@User_pdi,50) AS FLOAT) - [pdi]) * @Provide_pdi  + 
+	ABS(CAST(ISNULL(@User_idv,50) AS FLOAT) - [idv]) * @Provide_idv +
+	ABS(CAST(ISNULL(@User_mas,50) AS FLOAT) - [mas]) * @Provide_mas +
+	ABS(CAST(ISNULL(@User_uai,50) AS FLOAT) - [uai]) * @Provide_ivr +
+	ABS(CAST(ISNULL(@User_ivr,50) AS FLOAT) - [ivr]) * @Provide_ltowvs +
+	ABS(CAST(ISNULL(@User_ltowvs,50) AS FLOAT) - [ltowvs])
 	AS 'DeviationPoints'
 	FROM [MBTI].[MBTI].[TBL_CountryValues_HOFF] tHOFF
 ),
