@@ -1,7 +1,7 @@
 USE [MBTI]
 GO
 
-/****** Object:  StoredProcedure [MBTI].[SP_CountrySimilarity_MBTI]    Script Date: 9/5/2020 11:21:07 PM ******/
+/****** Object:  StoredProcedure [MBTI].[SP_CountrySimilarity_MBTI]    Script Date: 9/25/2020 2:28:43 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -17,11 +17,18 @@ CREATE PROCEDURE [MBTI].[SP_CountrySimilarity_MBTI]
 @ID_Session INT,
 @ID_Iteration INT,
 @IterationType NVARCHAR(100), 
-@User_I INT,
-@User_N INT,
-@User_T INT,
-@User_P INT,
-@User_A INT
+@User_I INT = 50,
+@User_N INT = 50,
+@User_T INT = 50,
+@User_P INT = 50,
+@User_A INT = 50,
+@Provide_I INT,
+@Provide_N INT,
+@Provide_T INT,
+@Provide_P INT,
+@Provide_A INT
+
+
 AS
 BEGIN
 
@@ -39,11 +46,11 @@ DECLARE @ID_Iteration_MBTI INT = (SELECT MAX([PK_ID_Iteration_MBTI]) FROM [MBTI]
 	[t],
 	[p],
 	[a],
-	ABS(CAST(@User_I AS FLOAT) - [i]) + 
-	ABS(CAST(@User_N AS FLOAT) - [n]) +
-	ABS(CAST(@User_T AS FLOAT) - [t]) +
-	ABS(CAST(@User_P AS FLOAT) - [p]) +
-	ABS(CAST(@User_A AS FLOAT) - [a])
+	ABS(CAST(ISNULL(@User_I,50) AS FLOAT) - [i]) * @Provide_I + 
+	ABS(CAST(ISNULL(@User_N,50) AS FLOAT) - [n]) * @Provide_N +
+	ABS(CAST(ISNULL(@User_T,50) AS FLOAT) - [t]) * @Provide_T +
+	ABS(CAST(ISNULL(@User_P,50) AS FLOAT) - [p]) * @Provide_P +
+	ABS(CAST(ISNULL(@User_A,50) AS FLOAT) - [a]) * @Provide_A
 	AS 'DeviationPoints'
 	FROM [MBTI].[TBL_CountryValues_MBTI]
 ),
